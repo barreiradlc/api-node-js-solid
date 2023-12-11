@@ -4,6 +4,7 @@
         "@rocketseat/eslint-config/node"
     ],
     "rules": {
+        "camelcase": "off",
         "prettier/prettier": [
           "error",
           {
