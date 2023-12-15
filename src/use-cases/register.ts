@@ -1,4 +1,5 @@
 import { hash } from "bcryptjs";
+import { EmailAlreadyExistsError } from "./errors/user-already-exists";
 
 interface RegisterUseCaseRequest {
   name: string;
@@ -13,7 +14,7 @@ class RegisterUseCase {
     const userWithSameEmail = await this.usersRepository.findByEmail(email);
 
     if (userWithSameEmail) {
-      throw new Error("Email already taken!");
+      throw new EmailAlreadyExistsError();
     }
 
     const password_hash = await hash(password, 6);
