@@ -1,30 +1,35 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { compare } from "bcryptjs";
-import { InMemoUsersRepository } from "@/repositories/in-memory/users-repository";
+
 import { RegisterUseCase } from "./register";
 import { EmailAlreadyExistsError } from "./errors/user-already-exists";
 
+import { UsersRepository } from "@/repositories/users-repository";
+import { InMemoryUsersRepository } from "@/repositories/in-memory/users-repository";
+
+let inMemoryUserRepository: UsersRepository;
+let sut: RegisterUseCase;
+
+const userPayload = {
+  email: "test@example.com",
+  name: "Test User",
+  password: "123456",
+};
+
 describe("Register UseCase", () => {
-  const userPayload = {
-    email: "test@example.com",
-    name: "Test User",
-    password: "123456",
-  };
+  beforeEach(() => {
+    inMemoryUserRepository = new InMemoryUsersRepository();
+    sut = new RegisterUseCase(inMemoryUserRepository);
+  });
 
   it("should create user", async () => {
-    const inMemoryUserRepository = new InMemoUsersRepository();
-    const registerUseCase = new RegisterUseCase(inMemoryUserRepository);
-
-    const { user } = await registerUseCase.execute(userPayload);
+    const { user } = await sut.execute(userPayload);
 
     expect(user.id).toEqual(expect.any(String));
   });
 
   it("should hash user password upon register", async () => {
-    const inMemoryUserRepository = new InMemoUsersRepository();
-    const registerUseCase = new RegisterUseCase(inMemoryUserRepository);
-
-    const { user } = await registerUseCase.execute(userPayload);
+    const { user } = await sut.execute(userPayload);
 
     const isPasswrdCorrectlyHashed = await compare(
       userPayload.password,
@@ -35,13 +40,10 @@ describe("Register UseCase", () => {
   });
 
   it("should not be able to create the user with same email", async () => {
-    const inMemoryUserRepository = new InMemoUsersRepository();
-    const registerUseCase = new RegisterUseCase(inMemoryUserRepository);
+    await sut.execute(userPayload);
 
-    await registerUseCase.execute(userPayload);
-
-    await expect(() =>
-      registerUseCase.execute(userPayload),
-    ).rejects.toBeInstanceOf(EmailAlreadyExistsError);
+    await expect(() => sut.execute(userPayload)).rejects.toBeInstanceOf(
+      EmailAlreadyExistsError,
+    );
   });
 });
