@@ -35,8 +35,6 @@ class RegisterUseCase {
       password_hash,
     });
 
-    console.log(user);
-
     return { user };
   }
 }
