@@ -40,8 +40,8 @@ describe("Register UseCase", () => {
 
     await registerUseCase.execute(userPayload);
 
-    expect(() => registerUseCase.execute(userPayload)).rejects.toBeInstanceOf(
-      EmailAlreadyExistsError,
-    );
+    await expect(() =>
+      registerUseCase.execute(userPayload),
+    ).rejects.toBeInstanceOf(EmailAlreadyExistsError);
   });
 });
