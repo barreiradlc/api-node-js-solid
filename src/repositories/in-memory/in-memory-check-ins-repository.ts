@@ -1,18 +1,30 @@
 import { CheckInsRepository } from "@/repositories/check-ins-repository";
 import { CheckIn, Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
+import dayjs from "dayjs";
 
 class InMemoryCheckInsRepository implements CheckInsRepository {
   public checkIns: CheckIn[] = [];
 
   async findByUserIdOnDate(userId: string, date: Date) {
-    const checkIn = this.checkIns.find((item) => item.user_id === userId);
+    const startOfTheDay = dayjs(date).startOf("date");
+    const endOfTheDay = dayjs(date).endOf("date");
 
-    if (!checkIn) {
+    const checkInOnSameDate = this.checkIns.find((checkIn) => {
+      const checkInDate = dayjs(checkIn.created_at);
+      const isOnSameDate =
+        (checkInDate.isAfter(startOfTheDay) ||
+          checkInDate.isSame(startOfTheDay)) &&
+        checkInDate.isBefore(endOfTheDay);
+
+      return checkIn.user_id === userId && isOnSameDate;
+    });
+
+    if (!checkInOnSameDate) {
       return null;
     }
 
-    return checkIn;
+    return checkInOnSameDate;
   }
 
   async create(data: Prisma.CheckInUncheckedCreateInput) {
