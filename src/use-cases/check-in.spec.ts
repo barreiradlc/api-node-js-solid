@@ -11,9 +11,18 @@ let sut: CheckInUseCase;
 
 const checkInPayload = {
   gymId: "gym-1",
+  description: "Js gym",
   userId: "user-1",
-  userLatitude: 0,
-  userLongitude: 0,
+  userLatitude: -15.8055607,
+  userLongitude: -47.9515105,
+};
+
+const checkInDistantPayload = {
+  gymId: "gym-2",
+  description: "Ts gym",
+  userId: "user-1",
+  userLatitude: -18.7160732,
+  userLongitude: -52.8619346,
 };
 
 describe("Register UseCase", () => {
@@ -27,8 +36,8 @@ describe("Register UseCase", () => {
       description: "Js gym",
       title: "",
       phone: null,
-      latitude: new Decimal(0),
-      longitude: new Decimal(0),
+      latitude: new Decimal(-15.8055607),
+      longitude: new Decimal(-47.9515105),
     });
 
     vi.useFakeTimers();
@@ -42,8 +51,8 @@ describe("Register UseCase", () => {
     const { checkIn } = await sut.execute({
       gymId: checkInPayload.gymId,
       userId: checkInPayload.userId,
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -15.8055607,
+      userLongitude: -47.9515105,
     });
 
     expect(checkIn.id).toEqual(expect.any(String));
@@ -55,16 +64,16 @@ describe("Register UseCase", () => {
     await sut.execute({
       gymId: checkInPayload.gymId,
       userId: checkInPayload.userId,
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -15.8055607,
+      userLongitude: -47.9515105,
     });
 
     await expect(() =>
       sut.execute({
         gymId: checkInPayload.gymId,
         userId: checkInPayload.userId,
-        userLatitude: 0,
-        userLongitude: 0,
+        userLatitude: -15.8055607,
+        userLongitude: -47.9515105,
       }),
     ).rejects.toBeInstanceOf(Error);
   });
@@ -75,8 +84,8 @@ describe("Register UseCase", () => {
     await sut.execute({
       gymId: checkInPayload.gymId,
       userId: checkInPayload.userId,
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -15.8055607,
+      userLongitude: -47.9515105,
     });
 
     vi.setSystemTime(new Date(2022, 0, 21, 0, 0, 0, 0));
@@ -84,10 +93,21 @@ describe("Register UseCase", () => {
     const { checkIn } = await sut.execute({
       gymId: checkInPayload.gymId,
       userId: checkInPayload.userId,
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -15.8055607,
+      userLongitude: -47.9515105,
     });
 
     expect(checkIn.id).toEqual(expect.any(String));
+  });
+
+  it("should NOT be able to create check in on distant gym", async () => {
+    await expect(() =>
+      sut.execute({
+        gymId: checkInDistantPayload.gymId,
+        userId: checkInDistantPayload.userId,
+        userLatitude: checkInDistantPayload.userLatitude,
+        userLongitude: checkInDistantPayload.userLongitude,
+      }),
+    ).rejects.toBeInstanceOf(Error);
   });
 });
