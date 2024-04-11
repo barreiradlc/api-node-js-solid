@@ -1,8 +1,9 @@
 import { InMemoryCheckInsRepository } from "@/repositories/in-memory/in-memory-check-ins-repository";
 import { InMemoryGymsRepository } from "@/repositories/in-memory/in-memory-gyms-repository";
-import { Decimal } from "@prisma/client/runtime/library";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CheckInUseCase } from "./check-in";
+import { MaxDistanceError } from "./errors/max-distance-error";
+import { MaxNumberOfCheckInsError } from "./errors/max-number-of-check-ins-error";
 
 let checkInsRepository: InMemoryCheckInsRepository;
 let gymsRepository: InMemoryGymsRepository;
@@ -31,13 +32,13 @@ describe("Register UseCase", () => {
     gymsRepository = new InMemoryGymsRepository();
     sut = new CheckInUseCase(checkInsRepository, gymsRepository);
 
-    await gymsRepository.gyms.push({
+    await gymsRepository.create({
       id: "gym-1",
       description: "Js gym",
       title: "",
       phone: null,
-      latitude: new Decimal(-15.8055607),
-      longitude: new Decimal(-47.9515105),
+      latitude: -15.8055607,
+      longitude: -47.9515105,
     });
 
     vi.useFakeTimers();
@@ -75,7 +76,7 @@ describe("Register UseCase", () => {
         userLatitude: -15.8055607,
         userLongitude: -47.9515105,
       }),
-    ).rejects.toBeInstanceOf(Error);
+    ).rejects.toBeInstanceOf(MaxNumberOfCheckInsError);
   });
 
   it("should be able to create check in twice in different day", async () => {
@@ -101,6 +102,15 @@ describe("Register UseCase", () => {
   });
 
   it("should NOT be able to create check in on distant gym", async () => {
+    await gymsRepository.create({
+      id: "gym-2",
+      description: "Js gym",
+      title: "",
+      phone: null,
+      latitude: -15.8055607,
+      longitude: -47.9515105,
+    });
+
     await expect(() =>
       sut.execute({
         gymId: checkInDistantPayload.gymId,
@@ -108,6 +118,6 @@ describe("Register UseCase", () => {
         userLatitude: checkInDistantPayload.userLatitude,
         userLongitude: checkInDistantPayload.userLongitude,
       }),
-    ).rejects.toBeInstanceOf(Error);
+    ).rejects.toBeInstanceOf(MaxDistanceError);
   });
 });
