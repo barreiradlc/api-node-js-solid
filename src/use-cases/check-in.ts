@@ -31,7 +31,6 @@ class CheckInUseCase {
   }: CheckInUseCaseRequest): Promise<CheckInUseCaseResponse> {
     const gym = await this.gymsRepository.findById(gymId);
 
-    console.log("CheckInUseCase", gym)
     if (!gym) {
       throw new ResourceNotFoundError();
     }
